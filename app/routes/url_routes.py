@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, redirect
 import validators
 
-from app import db
+from app import db,cache
 from app.models.url import URL
 from app.utils.shortener import encode
 
@@ -29,6 +29,10 @@ def shorten_url():
 
 @url_bp.route("/<short_code>", methods=["GET"])
 def redirect_to_url(short_code):
+    cached_url = cache.get(short_code)
+    if cached_url:
+        return redirect(cached_url)
+
     entry = URL.query.filter_by(short_code=short_code).first()
 
     if entry is None:
@@ -39,5 +43,7 @@ def redirect_to_url(short_code):
 
     entry.click_count += 1
     db.session.commit()
+
+    cache.setex(short_code, 3600, entry.long_url)
 
     return redirect(entry.long_url)

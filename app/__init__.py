@@ -2,11 +2,12 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+import redis
 
 load_dotenv()
 
 db = SQLAlchemy()
-
+cache=redis.Redis(host="localhost",port=6379,decode_responses=True)
 
 def create_app():
     app = Flask(__name__)
